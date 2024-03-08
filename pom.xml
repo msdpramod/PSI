@@ -9,7 +9,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>org.commerceproject</groupId>
-    <artifactId>project-p</artifactId>
+    <artifactId>PSI</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>PSI</name>
     <description>PSI</description>
