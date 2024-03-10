@@ -2,7 +2,7 @@ package org.commerceproject.psi.Service;
 
 import jakarta.transaction.Transactional;
 import org.commerceproject.psi.Exceptions.ResourceNotFoundException;
-import org.commerceproject.psi.Models.ApplicantDetails;
+import org.commerceproject.psi.Models.ApplicantPageModels.ApplicantDetails;
 import org.commerceproject.psi.Repository.ApplicantDetailsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

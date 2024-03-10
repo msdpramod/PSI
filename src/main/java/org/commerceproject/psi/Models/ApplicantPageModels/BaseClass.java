@@ -1,4 +1,4 @@
-package org.commerceproject.psi.Models;
+package org.commerceproject.psi.Models.ApplicantPageModels;
 
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;

@@ -1,9 +1,18 @@
 package org.commerceproject.psi.controllers;
 
-import org.commerceproject.psi.Models.ApplicantDetails;
+import org.commerceproject.psi.DTOS.ApplicantDetailsDto;
+import org.commerceproject.psi.Models.ApplicantPageModels.ApplicantDetails;
 import org.commerceproject.psi.Service.ApplicantDetailsService;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.validation.Valid;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.UUID;
 
 @RestController
@@ -12,7 +21,9 @@ public class ApplicantDetailsController {
 
     private final ApplicantDetailsService applicantDetailsService;
 
-    // Assume you have a service that performs CRUD operations on ApplicantDetails
+    @Value("${file.upload-dir}") // Ensure you have this property defined in your application.properties or application.yml
+    private String uploadDirectory;
+
     public ApplicantDetailsController(ApplicantDetailsService applicantDetailsService) {
         this.applicantDetailsService = applicantDetailsService;
     }
@@ -40,4 +51,39 @@ public class ApplicantDetailsController {
         applicantDetailsService.deleteApplicantDetails(id);
         return ResponseEntity.noContent().build();
     }
-}
+
+    @PostMapping("/upload")
+    public ResponseEntity<String> uploadFiles(@Valid @ModelAttribute ApplicantDetailsDto applicantDetailsDto) {
+        try {
+            Path path = Paths.get(uploadDirectory);
+            if (!Files.exists(path)) {
+                Files.createDirectories(path);
+            }
+
+            // Handling PAN card file upload
+            MultipartFile panCardFile = applicantDetailsDto.getPanCardFile();
+            if (panCardFile != null && !panCardFile.isEmpty()) {
+                String panCardName = panCardFile.getOriginalFilename();
+                Path panCardPath = Paths.get(uploadDirectory, panCardName);
+                Files.write(panCardPath, panCardFile.getBytes());
+                applicantDetailsDto.setPanCardFilePath(uploadDirectory + "/" + panCardName);
+            }
+
+            // Handling Aadhar card file upload
+            MultipartFile aadharCardFile = applicantDetailsDto.getAadharCardFile();
+            if (aadharCardFile != null && !aadharCardFile.isEmpty()) {
+                String aadharCardName = aadharCardFile.getOriginalFilename();
+                Path aadharCardPath = Paths.get(uploadDirectory, aadharCardName);
+                Files.write(aadharCardPath, aadharCardFile.getBytes());
+                applicantDetailsDto.setAadharCardFilePath(uploadDirectory + "/" + aadharCardName);
+            }
+
+            // Respond back with the path of uploaded files or a success message
+            return ResponseEntity.ok("Files uploaded successfully.");
+            }
+            catch (Exception e) {
+                return new ResponseEntity<>("File upload failed: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }
+
+    }

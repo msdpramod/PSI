@@ -1,7 +1,8 @@
-package org.commerceproject.psi.Models;
+package org.commerceproject.psi.Models.ApplicantPageModels;
 
-public enum Taluka {
-    ANANTAPUR,    CHITTOOR,
+public enum District {
+    ANANTAPUR,
+    CHITTOOR,
     EASTGODAVARI,
     GUNTUR,
     KRISHNA,
