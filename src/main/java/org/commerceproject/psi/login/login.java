@@ -354,3 +354,211 @@ It encapsulates all the best practices when it comes to implementing OAuth 2.0 i
 As this talking assistant, I'm limited in what I can do. OAuth 2.0 implementation highly depends on your application's initial setup and changes based on what OAuth provider you're going to use. So, I suggest using the step-by-step guides provided by Spring themselves. Hope this helps!
 
  */
+
+
+
+
+/*
+@Entity
+public class User {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private long id;
+
+    @NotNull
+    private String name;
+
+    @NotNull
+    private String password;
+
+    // getters and setters
+}@Repository
+public interface UserRepository extends JpaRepository<User, Integer> {
+    User findByUsername(String name);
+}@Service
+public class UserService {
+
+    @Autowired
+    private UserRepository userRepository;
+
+    public User findByUsername(String username){
+        return userRepository.findByUsername(username);
+    }
+
+    // code for saving user etc.
+}@Component
+public class JwtUtil {
+
+    private String SECRET_KEY = "secret";
+
+    public String extractUsername(String token) {
+        return extractClaim(token, Claims::getSubject);
+    }
+
+    public Date extractExpiration(String token) {
+        return extractClaim(token, Claims::getExpiration);
+    }
+
+    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+        final Claims claims = extractAllClaims(token);
+        return claimsResolver.apply(claims);
+    }
+
+    private Claims extractAllClaims(String token) {
+        return Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token).getBody();
+    }
+
+    private Boolean isTokenExpired(String token) {
+        return extractExpiration(token).before(new Date());
+    }
+
+    public String generateToken(String username) {
+        Map<String, Object> claims = new HashMap<>();
+        return createToken(claims, username);
+    }
+
+    private String createToken(Map<String, Object> claims, String subject) {
+
+        return Jwts.builder().setClaims(claims).setSubject(subject)
+            .setIssuedAt(new Date(System.currentTimeMillis()))
+            .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10))
+            .signWith(SignatureAlgorithm.HS256, SECRET_KEY).compact();
+    }
+
+    public Boolean validateToken(String token, UserDetails userDetails) {
+        final String username = extractUsername(token);
+        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+    }
+}@RestController
+public class AuthenticationController {
+
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private JwtUtil jwtTokenUtil;
+
+    @PostMapping("/authenticate")
+    public ResponseEntity<?> createAuthenticationToken(@RequestBody AuthenticationRequest authenticationRequest) throws Exception {
+
+        User user = userService.findByUsername(authenticationRequest.getUsername());
+
+        if(user != null && authenticationRequest.getPassword().equals(user.getPassword())) {
+            final String jwt = jwtTokenUtil.generateToken(user.getUsername());
+            return ResponseEntity.ok(new AuthenticationResponse(jwt));
+        } else {
+            throw new BadCredentialsException("Incorrect username or password");
+        }
+    }
+}@Service
+public class UserService {
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private AuthenticationService authService;
+
+    public User findByUsername(String username){
+        return userRepository.findByUsername(username);
+    }
+
+    public String authenticateUser(String username, String password) throws Exception {
+        User user = findByUsername(username);
+
+        if (user != null && user.getPassword().equals(password)) {
+            return authService.generateToken(user);
+        } else {
+            throw new FailedAuthenticationException("Incorrect Username or Password");
+        }
+    }
+
+}@Service
+public class UserService {
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private AuthenticationService authService;
+
+    public User findByUsername(String username){
+        return userRepository.findByUsername(username);
+    }
+
+    public String authenticateUser(String username, String password) throws Exception {
+        User user = findByUsername(username);
+
+        if (user != null && user.getPassword().equals(password)) {
+            return authService.generateToken(user);
+        } else {
+            throw new FailedAuthenticationException("Incorrect Username or Password");
+        }
+    }
+
+}@RestController
+public class UserController {
+    private final UserService userService;
+
+    @Autowired
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<AuthTokenDTO> authenticateUser(@RequestBody LoginDTO loginData) {
+        try {
+            String token = userService.authenticateUser(loginData.getUsername(), loginData.getPassword());
+
+            AuthTokenDTO response = new AuthTokenDTO();
+            response.setToken(token);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+
+        } catch (FailedAuthenticationException ex) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
+    }
+}public class LoginDTO {
+    private String username;
+    private String password;
+
+    // getters and setters
+}
+
+public class AuthTokenDTO {
+    private String token;
+
+    // getters and setters
+}@EnableWebSecurity
+public class SecurityConfigurer extends WebSecurityConfigurerAdapter {
+
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private JwtRequestFilter jwtRequestFilter;
+
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        auth.userDetailsService(userService);
+    }
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http.csrf().disable()
+                .authorizeRequests().antMatchers("/authenticate").permitAll()
+                .anyRequest().authenticated()
+                .and().sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+        http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
+    }
+
+    @Override
+    @Bean
+    public AuthenticationManager authenticationManagerBean() throws Exception {
+        return super.authenticationManagerBean();
+    }
+
+}
+ */
